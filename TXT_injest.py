@@ -65,7 +65,8 @@ def txt_embedding():
             # split it into chunks
             text_splitter = CharacterTextSplitter(chunk_size=int(chunk_size), chunk_overlap=int(chunk_overlap))
             docs = text_splitter.split_documents(documents)
-            docs[0].metadata['namespace'] = namespace
+            for index in range(0, len(docs)):
+                docs[index].metadata['namespace'] = namespace
             # create the open-source embedding function
             embedding_function = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
             

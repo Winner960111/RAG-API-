@@ -1,3 +1,0 @@
-
-def pdf_masking():
-    

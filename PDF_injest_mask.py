@@ -5,9 +5,17 @@ from langchain_text_splitters import CharacterTextSplitter
 from langchain_community.embeddings.sentence_transformer import (
     SentenceTransformerEmbeddings,
 )
-import os
+import os, re, spacy
 
-def pdf_embedding():
+# Load the English language model
+nlp = spacy.load('en_core_web_sm')
+
+def extract_names(text):
+    doc = nlp(text)
+    names = [ent.text for ent in doc.ents if ent.label_ == 'PERSON']
+    return names
+
+def pdf_embedding_mask():
     if request.method == 'POST':
         Uploaded_files = request.files.getlist('files')
         
@@ -67,6 +75,12 @@ def pdf_embedding():
             docs = text_splitter.split_documents(documents)
             for index in range(0, len(docs)):
                 docs[index].metadata['namespace'] = namespace
+
+                # Mask functionality
+                name = extract_names(docs[index].page_content)
+                email = re.findall(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', docs[index].page_content)
+                print(f"\n\nthis is name===>{name}, {email}")
+
             # create the open-source embedding function
             embedding_function = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
             

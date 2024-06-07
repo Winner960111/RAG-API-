@@ -1,13 +1,25 @@
 from flask import request
 from langchain_chroma import Chroma
-from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import CharacterTextSplitter
 from langchain_community.embeddings.sentence_transformer import (
     SentenceTransformerEmbeddings,
 )
-import os
+import os, re, spacy, uuid, sqlite3
 
-def pdf_embedding():
+# Load the English language model
+nlp = spacy.load('en_core_web_sm')
+
+def extract_names(text):
+    doc = nlp(text)
+    names = []
+    for ent in doc.ents:
+        if ent.label_ == 'PERSON':
+            if not re.findall('@', ent.text):
+                names.append(ent.text)
+    return names
+
+def txt_embedding_mask():
     if request.method == 'POST':
         Uploaded_files = request.files.getlist('files')
         
@@ -59,7 +71,7 @@ def pdf_embedding():
         files_in_directory = os.listdir(Uploaded_dir)
         for file_name in files_in_directory:
             
-            loader = PyPDFLoader(rf"{Uploaded_dir}/{file_name}")
+            loader = TextLoader(rf"{Uploaded_dir}/{file_name}", encoding='utf-8')
             documents= loader.load()
         
             # split it into chunks
@@ -67,6 +79,27 @@ def pdf_embedding():
             docs = text_splitter.split_documents(documents)
             for index in range(0, len(docs)):
                 docs[index].metadata['namespace'] = namespace
+
+                # Mask functionality
+                name = extract_names(docs[index].page_content)
+                email = re.findall(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', docs[index].page_content)
+                credit_card = re.findall(r'\b\d{16}\b', docs[index].page_content)
+                phone_number = re.findall(r'\b\d{3}-\d{3}-\d{4}\b', docs[index].page_content)
+                print(f"\n\nthis is name===>{name}, {email}, {credit_card}, {phone_number}")
+
+                # create UUID letters
+                for item in name:
+                    uuid_str = str(uuid.uuid4())
+
+                    # Save the uuid at sqlite3 db
+                    con = sqlite3.connect("tutorial.db")
+                    cur = con.cursor()
+                    cur.execute("CREATE TABLE uuid_info(name, phone_number, credit_card, email)")
+                    con.close()
+                    docs[index].page_content = re.sub(item, uuid_str, docs[index].page_content)
+
+            
+            print(docs)
             # create the open-source embedding function
             embedding_function = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
             
