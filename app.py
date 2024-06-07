@@ -24,29 +24,37 @@ def Create_Text_Database():
 # Delete special chroma DB (vectordb name)
 @app.route('/delete_one_db', methods = ['DELETE'])
 def delete_one_db():
-    if request.method == 'DELETE':
+    try:
 
-        db_name = request.form.get('vectordb_name')
-        db_path = f'./Databases/{db_name}'
-        if os.path.exists(db_path):
-            shutil.rmtree(db_path)  # Delete the directory containing the Chroma DB
-            return jsonify({'message': f'{db_name} deleted successfully'})
-        else:
-            return jsonify({'message': f'{db_name} not found'})
+        if request.method == 'DELETE':
 
-    return 'OK'
+            db_name = request.form.get('vectordb_name')
+            db_path = f'./Databases/{db_name}'
+            if os.path.exists(db_path):
+                shutil.rmtree(db_path)  # Delete the directory containing the Chroma DB
+                return jsonify({'message': f'{db_name} deleted successfully'})
+            else:
+                return jsonify({'message': f'{db_name} not found'})
+    except Exception as e:
+        print(e)
+        return jsonify({'error': e})
 
 # Delete special chroma DB (vectordb name)
 @app.route('/delete_all_dbs', methods=['DELETE'])
 def delete_all_dbs():
-    if request.method == 'DELETE':
-        db_path = './Databases'
-        if os.path.exists(db_path):
-            shutil.rmtree(db_path)  # Delete the directory containing all Chroma DBs
-            os.makedirs(db_path)  # Recreate the empty directory
-            return jsonify({'message': 'All DBs deleted successfully'})
-        else:
-            return jsonify({'message': 'No DBs found'})
+    try:
+
+        if request.method == 'DELETE':
+            db_path = './Databases'
+            if os.path.exists(db_path):
+                shutil.rmtree(db_path)  # Delete the directory containing all Chroma DBs
+                os.makedirs(db_path)  # Recreate the empty directory
+                return jsonify({'message': 'All DBs deleted successfully'})
+            else:
+                return jsonify({'message': 'No DBs found'})
+    except Exception as e:
+        print(e)
+        return jsonify({'error': e})
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
