@@ -67,10 +67,11 @@ def pdf_embedding():
             docs = text_splitter.split_documents(documents)
             for index in range(0, len(docs)):
                 docs[index].metadata['namespace'] = namespace
+                docs[index].metadata['vectordb_name'] = vectordb_name
             # create the open-source embedding function
             embedding_function = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
             
             # load it into Chroma
-            Chroma.from_documents(docs, embedding_function, persist_directory=f"./Databases/{vectordb_name}")
+            Chroma.from_documents(docs, embedding_function, persist_directory=f"./Databases/ChromaDB")
 
     return 'OK'

@@ -1,10 +1,11 @@
-from flask import Flask, request, jsonify
+from flask import Flask
 from PDF_injest import pdf_embedding
 from PDF_injest_mask import pdf_embedding_mask
 from TXT_injest_mask import txt_embedding_mask
 from TXT_injest import txt_embedding
+from Delete_one import delete_db
+from Delete_all import delete_db_all
 from Query import query
-import os, shutil
 
 app = Flask(__name__)
 
@@ -36,37 +37,12 @@ def run_query():
 # Delete special chroma DB (vectordb name)
 @app.route('/delete_one_db', methods = ['DELETE'])
 def delete_one_db():
-    try:
+    return delete_db()
 
-        if request.method == 'DELETE':
-
-            db_name = request.form.get('vectordb_name')
-            db_path = f'./Databases/{db_name}'
-            if os.path.exists(db_path):
-                shutil.rmtree(db_path)  # Delete the directory containing the Chroma DB
-                return jsonify({'message': f'{db_name} deleted successfully'})
-            else:
-                return jsonify({'message': f'{db_name} not found'})
-    except Exception as e:
-        print(e)
-        return jsonify({'error': e})
-
-# Delete special chroma DB (vectordb name)
+# Delete all chroma DB (vectordb name)
 @app.route('/delete_all_dbs', methods=['DELETE'])
 def delete_all_dbs():
-    try:
-
-        if request.method == 'DELETE':
-            db_path = './Databases'
-            if os.path.exists(db_path):
-                shutil.rmtree(db_path)  # Delete the directory containing all Chroma DBs
-                os.makedirs(db_path)  # Recreate the empty directory
-                return jsonify({'message': 'All DBs deleted successfully'})
-            else:
-                return jsonify({'message': 'No DBs found'})
-    except Exception as e:
-        print(e)
-        return jsonify({'error': e})
+    return delete_db_all()
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
