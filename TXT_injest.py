@@ -68,10 +68,29 @@ def txt_embedding():
             for index in range(0, len(docs)):
                 docs[index].metadata['namespace'] = namespace
                 docs[index].metadata['vectordb_name'] = vectordb_name
+
+            # Choose embed method
+            match embed_method:
+
+                case "improved_language_understanding":
+                    model = "roberta-base"
+                
+                case "wide_range_NLP":
+                    model = "all-MiniLM-L6-v2"
+
+                case "resource_constrained_env":
+                    model = "squeezebert/squeezebert-uncased"
+
+                case _:
+                    model = "None"
+
+            if model == "None":
+                return "Input correct model name"
+            
             # create the open-source embedding function
-            embedding_function = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
+            embedding_function = SentenceTransformerEmbeddings(model_name=model)
             
             # load it into Chroma
-            Chroma.from_documents(docs, embedding_function, persist_directory=f"./Databases/ChromaDB")
+            Chroma.from_documents(docs, embedding_function, persist_directory=f"./Databases/{model}")
 
     return 'OK'
