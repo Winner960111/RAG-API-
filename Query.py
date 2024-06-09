@@ -57,7 +57,9 @@ def query():
                 if number == 4:
                     break
         print("this is deliver====>", deliver)
-
+        if deliver == "":
+            return 'Empty Database'
+        
         deliver_prompt = f'You should answer the following contents correctly based on {deliver}: {prompt}'
 
         # Use LLM endpoint
@@ -103,7 +105,6 @@ def query():
         uuid_list = [result[0] for result in results]
 
         for uuid in uuid_list:
-            print("\nthis is uuid====>", uuid)
             if re.search(str(uuid), search_text):
                 # Execute a query to fetch the value of the 'name' item based on the special 'uuid' item
                 cursor.execute("SELECT real FROM uuid_info WHERE uuid = ?", (uuid,))
