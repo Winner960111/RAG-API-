@@ -1,6 +1,6 @@
 from flask import request
 from langchain_chroma import Chroma
-from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import JSONLoader
 from langchain_text_splitters import CharacterTextSplitter
 from langchain_community.embeddings.sentence_transformer import (
     SentenceTransformerEmbeddings,
@@ -19,7 +19,7 @@ def extract_names(text):
                 names.append(ent.text)
     return names
 
-def pdf_embedding_mask():
+def json_embedding_mask():
     if request.method == 'POST':
         Uploaded_files = request.files.getlist('files')
         
@@ -76,10 +76,14 @@ def pdf_embedding_mask():
         # List all files in the special directory
         files_in_directory = os.listdir(Uploaded_dir)
         for file_name in files_in_directory:
-            
-            loader = PyPDFLoader(rf"{Uploaded_dir}/{file_name}")
-            documents= loader.load()
 
+            try:
+                loader = JSONLoader(rf"{Uploaded_dir}/{file_name}")
+            except:
+                return "Invalid file format"
+            
+            documents= loader.load()
+        
             # split it into chunks
             text_splitter = CharacterTextSplitter(chunk_size=int(chunk_size), chunk_overlap=int(chunk_overlap))
             docs = text_splitter.split_documents(documents)

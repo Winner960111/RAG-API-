@@ -6,7 +6,7 @@ from langchain_community.embeddings.sentence_transformer import (
 from langchain_core.output_parsers import StrOutputParser
 import json, requests, sqlite3,re
 
-def query():
+def query_unmask():
     if request.method == 'POST':
         
         # Get essential information from request.
@@ -90,7 +90,31 @@ def query():
         headers = {'content-type': 'application/json', 'Accept-Charset': 'UTF-8'}
 
         response = requests.request("POST", url, headers=headers, data=payload)
-        
-        return response.text
+
+        # Connect to the SQLite database
+        search_text = response.text
+
+        conn = sqlite3.connect('./sqliteDB/Database.db')
+        cursor = conn.cursor()
+
+        # Execute a query to fetch all values of the 'uuid' item
+        cursor.execute("SELECT uuid FROM uuid_info")
+        results = cursor.fetchall()
+
+        # Convert the fetched data into a list format
+        uuid_list = [result[0] for result in results]
+
+        for uuid in uuid_list:
+            if re.search(str(uuid), search_text):
+                # Execute a query to fetch the value of the 'name' item based on the special 'uuid' item
+                cursor.execute("SELECT real FROM uuid_info WHERE uuid = ?", (uuid,))
+                result = cursor.fetchone()
+                search_text = re.sub(str(uuid), str(result), search_text)
+
+        # Close the cursor and connection
+        cursor.close()
+        conn.close()
+
+        return search_text
     
     return "OK"

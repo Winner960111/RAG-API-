@@ -1,2 +1,0 @@
-This is John Doe. His email is john.doe@gmail.com. Phone number is 789-234-2934.
-And then, his credit card number is 5500000000000004.
